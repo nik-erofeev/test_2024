@@ -60,6 +60,6 @@ class TaskRouter:
             task = await self._task_service.find_task_by_id(task_id)
 
             if task is None:
-                raise HTTPException(status_code=404, detail={f"Таска {task_id} не найдена"})
+                raise HTTPException(status_code=404, detail=f"Таска {task_id} не найдена")
 
             return task

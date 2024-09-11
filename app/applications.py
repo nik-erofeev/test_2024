@@ -2,6 +2,7 @@ import logging
 
 from fastapi import FastAPI
 
+from app.routers.product_router import ProductRouter
 from app.routers.task_router import TaskRouter
 from app.settings import AppConfig
 from app.utils.db import Db
@@ -14,12 +15,14 @@ class Application:
     def __init__(
         self,
         config: AppConfig,
-        tasks: TaskRouter,
         db: Db,
+        tasks: TaskRouter,
+        product: ProductRouter,
     ):
         self._config = config
         self._db = db
         self._tasks = tasks
+        self._product = product
 
     def setup(self, server: FastAPI) -> None:
         @server.on_event("startup")
@@ -31,6 +34,7 @@ class Application:
             await self._db.shutdown()
 
         server.include_router(self._tasks.api_route, prefix="/tasks", tags=["Таски"])
+        server.include_router(self._product.api_route, prefix="/products", tags=["Продукты"])
 
     @property
     def app(self) -> FastAPI:
