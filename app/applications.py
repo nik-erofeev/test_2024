@@ -38,6 +38,15 @@ class Application:
 
     @property
     def app(self) -> FastAPI:
-        server = FastAPI()
+        server = FastAPI(
+            title="Test project",
+            description="тестовый проект",
+            version="8.0.8",
+            contact={
+                "name": "Nik",
+                "email": "erofeev.nik.it@yandex.ru",
+            },
+            license_info={"name": "TEST_license"},
+        )
         self.setup(server)
         return server
