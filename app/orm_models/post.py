@@ -9,6 +9,8 @@ from app.utils.db import Base
 
 
 class Post(IdMixin, Base):
+    __tablename__ = 'posts'
+
     title: Mapped[str] = mapped_column(String(100), unique=False)
     body: Mapped[str] = mapped_column(Text, default="", server_default="")
 
@@ -17,5 +19,6 @@ class Post(IdMixin, Base):
         nullable=False,
     )
     user: Mapped["orm_models.User"] = relationship(  # todo: M-t-O (у поста юзеР)
+        "User",
         back_populates='posts',
     )

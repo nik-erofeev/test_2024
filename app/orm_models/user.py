@@ -10,7 +10,11 @@ class User(IdMixin, Base):
     username: Mapped[str] = mapped_column(String(36), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(50), nullable=False)
     posts: Mapped[list["orm_models.Post"]] = relationship(
+        "Post",
         back_populates='user',
     )  # todo: O-t-M (у юзера - постЫ)
 
-    profile: Mapped["orm_models.Profile"] = relationship(back_populates='user')  # todo O-t-O
+    profile: Mapped["orm_models.Profile"] = relationship(
+        "Profile",
+        back_populates='user',
+    )  # todo O-t-O

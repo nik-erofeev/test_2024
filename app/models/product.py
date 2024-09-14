@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -28,3 +29,8 @@ class ProductUpdate(BaseModel):
 
 class ProductQueryParams(ProductUpdate):
     pass
+
+
+class ProductUpdateResponse(BaseModel):
+    product_id: UUID
+    message: str
