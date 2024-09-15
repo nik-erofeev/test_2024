@@ -30,10 +30,10 @@ class ProductService:
 
         return ProductResponse.model_validate(result)
 
-    async def get_product(self, name: str) -> ProductResponse | None:
-        product = await self._product_repo.get_product_by_name(name.lower())
+    async def get_product_by_id(self, product_id: UUID) -> ProductResponse | None:
+        product = await self._product_repo.get_product_id(product_id)
         if product is None:
-            raise HTTPException(status_code=404, detail=f"Продукт {name} не найден")
+            raise HTTPException(status_code=404, detail=f"Продукт product_id: {product_id} не найден")
 
         return ProductResponse.model_validate(product)
 
@@ -45,13 +45,16 @@ class ProductService:
             logger.exception(f"Database error occurred while retrieving products, {e}")
             raise HTTPException(status_code=500, detail="Database error occurred")
 
-    async def update_product(self, product_id: UUID, product_update: ProductUpdate) -> ProductUpdateResponse | None:
+    async def update_product_by_id(
+        self,
+        product_id: UUID,
+        product_update: ProductUpdate,
+    ) -> ProductUpdateResponse:
         try:
-            update_product = await self._product_repo.update_product(product_id, product_update)
-            if update_product is None:
-                raise HTTPException(status_code=404, detail="Продукт не найден для обновления")
+            await self.get_product_by_id(product_id)
 
-            elif update_product is False:
+            update_success = await self._product_repo.update_product(product_id, product_update)
+            if not update_success:
                 raise HTTPException(status_code=404, detail="Никакие изменения не были внесены")
 
             return ProductUpdateResponse(product_id=product_id, message="Успешно обновлен")

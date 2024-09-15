@@ -33,13 +33,13 @@ class ProductRouter:
             return await self._product_service.create_product(product)
 
         @router.get(
-            '/{product_name}',
+            '/{product_id}',
             response_model=ProductResponse,
             response_class=ORJSONResponse,
             status_code=200,
         )
-        async def get_product_by_name(product_name: str):
-            return await self._product_service.get_product(product_name)
+        async def get_product_by_id(product_id: UUID):
+            return await self._product_service.get_product_by_id(product_id)
 
         @router.get(
             '/',
@@ -56,4 +56,4 @@ class ProductRouter:
             status_code=200,
         )
         async def update_product(product_id: UUID, product_update: ProductUpdate):
-            return await self._product_service.update_product(product_id, product_update)
+            return await self._product_service.update_product_by_id(product_id, product_update)
