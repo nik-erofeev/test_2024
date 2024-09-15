@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 
 from app.models.product import ProductCreate, ProductUpdate
 from app.orm_models import Product
@@ -46,5 +46,6 @@ class ProductRepo:
 
             return True
 
-    # async def delete_product(self, product_id: UUID):
-    #     async with self._db.get_session() as session:
+    async def delete_product(self, product_id: UUID):
+        async with self._db.get_session() as session:
+            await session.execute(delete(Product).where(Product.id == product_id))

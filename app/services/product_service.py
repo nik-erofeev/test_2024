@@ -4,7 +4,13 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.models.product import ProductCreate, ProductResponse, ProductUpdate, ProductUpdateResponse
+from app.models.product import (
+    ProductCreate,
+    ProductDeleteResponse,
+    ProductResponse,
+    ProductUpdate,
+    ProductUpdateResponse,
+)
 from app.repositories.product_repository import ProductRepo
 from app.utils.pagination import PaginationParams
 
@@ -59,6 +65,16 @@ class ProductService:
 
             return ProductUpdateResponse(product_id=product_id, message="Успешно обновлен")
 
+        except SQLAlchemyError as e:
+            logger.exception("Database error occurred while updating product")
+            raise e
+
+    async def delete_product_by_id(self, product_id: UUID) -> ProductDeleteResponse:
+        try:
+            await self.get_product_by_id(product_id)
+            await self._product_repo.delete_product(product_id)
+
+            return ProductDeleteResponse(id=product_id, message="Успешно удален")
         except SQLAlchemyError as e:
             logger.exception("Database error occurred while updating product")
             raise e

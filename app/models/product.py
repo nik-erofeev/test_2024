@@ -33,3 +33,8 @@ class ProductQueryParams(ProductUpdate):
 class ProductUpdateResponse(BaseModel):
     product_id: UUID
     message: str
+
+
+class ProductDeleteResponse(BaseModel):
+    id: UUID
+    message: str

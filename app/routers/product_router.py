@@ -4,7 +4,13 @@ from uuid import UUID
 from fastapi import APIRouter
 from fastapi.responses import ORJSONResponse
 
-from app.models.product import ProductCreate, ProductResponse, ProductUpdate, ProductUpdateResponse
+from app.models.product import (
+    ProductCreate,
+    ProductDeleteResponse,
+    ProductResponse,
+    ProductUpdate,
+    ProductUpdateResponse,
+)
 from app.services.product_service import ProductService
 from app.utils.pagination import PaginationDep
 
@@ -53,7 +59,17 @@ class ProductRouter:
         @router.patch(
             "/{product_id}",
             response_model=ProductUpdateResponse,
+            response_class=ORJSONResponse,
             status_code=200,
         )
         async def update_product(product_id: UUID, product_update: ProductUpdate):
             return await self._product_service.update_product_by_id(product_id, product_update)
+
+        @router.delete(
+            "/{product_id}",
+            response_model=ProductDeleteResponse,
+            response_class=ORJSONResponse,
+            status_code=200,
+        )
+        async def delete_product(product_id: UUID):
+            return await self._product_service.delete_product_by_id(product_id)
