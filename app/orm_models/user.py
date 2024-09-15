@@ -8,7 +8,10 @@ from app.utils.db import Base
 
 class User(IdMixin, Base):
     username: Mapped[str] = mapped_column(String(36), unique=True, nullable=False)
-    password: Mapped[str] = mapped_column(String(50), nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(50), nullable=False)
+    email: Mapped[str] = mapped_column(String(), unique=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(default=True)
+
     posts: Mapped[list["orm_models.Post"]] = relationship(
         "Post",
         back_populates='user',

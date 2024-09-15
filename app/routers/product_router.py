@@ -27,7 +27,7 @@ class ProductRouter:
             "/",
             response_model=ProductResponse,
             response_class=ORJSONResponse,
-            status_code=202,
+            status_code=201,
         )
         async def add_product(product: ProductCreate):
             return await self._product_service.create_product(product)
