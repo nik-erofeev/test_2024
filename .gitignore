@@ -4,7 +4,9 @@ env
 .idea
 __pycache__
 .env
+.env_local
 
+#/certs
 
 
 ### macOS ###

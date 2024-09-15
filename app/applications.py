@@ -2,7 +2,9 @@ import logging
 
 from fastapi import FastAPI
 
+from app.routers.product_router import ProductRouter
 from app.routers.task_router import TaskRouter
+from app.routers.user_router import UserRouter
 from app.settings import AppConfig
 from app.utils.db import Db
 
@@ -14,12 +16,16 @@ class Application:
     def __init__(
         self,
         config: AppConfig,
-        tasks: TaskRouter,
         db: Db,
+        tasks: TaskRouter,
+        product: ProductRouter,
+        user: UserRouter,
     ):
         self._config = config
         self._db = db
         self._tasks = tasks
+        self._product = product
+        self._user = user
 
     def setup(self, server: FastAPI) -> None:
         @server.on_event("startup")
@@ -31,9 +37,20 @@ class Application:
             await self._db.shutdown()
 
         server.include_router(self._tasks.api_route, prefix="/tasks", tags=["Таски"])
+        server.include_router(self._product.api_route, prefix="/products", tags=["Продукты"])
+        server.include_router(self._user.api_route, prefix="/users", tags=["Пользователи"])
 
     @property
     def app(self) -> FastAPI:
-        server = FastAPI()
+        server = FastAPI(
+            title="Test project",
+            description="тестовый проект",
+            version="8.0.8",
+            contact={
+                "name": "Nik",
+                "email": "erofeev.nik.it@yandex.ru",
+            },
+            license_info={"name": "TEST_license"},
+        )
         self.setup(server)
         return server
