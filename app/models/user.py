@@ -22,6 +22,7 @@ class UserCreateResponse(UserBase):
 class UserResponse(UserBase):
     is_active: bool
     id: UUID
+    hashed_password: str
 
     class Config:
         from_attributes = True

@@ -8,7 +8,7 @@ from app.utils.db import Base
 
 class User(IdMixin, Base):
     username: Mapped[str] = mapped_column(String(36), unique=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String(50), nullable=False)
+    hashed_password: Mapped[str] = mapped_column(nullable=False)
     email: Mapped[str] = mapped_column(String(), unique=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True)
 

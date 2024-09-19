@@ -38,6 +38,12 @@ class UserRepo:
             result = await session.execute(query)
             return result.scalar_one_or_none()
 
+    async def get_user_by_email(self, email: str):
+        async with self._db.get_session() as session:
+            query = select(User).filter_by(email=email)
+            result = await session.execute(query)
+            return result.scalar_one_or_none()
+
     async def delete_user(self, user_id: UUID):
         async with self._db.get_session() as session:
             await session.execute(update(User).where(User.id == user_id).values(is_active=False))

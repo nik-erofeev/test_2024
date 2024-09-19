@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.models.user import UserCreate, UserCreateResponse, UserDelResponse, UserResponse
 from app.repositories.user_repository import UserRepo
+from app.utils.auth import Hasher
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,11 @@ class UserService:
 
     async def create_user(self, user: UserCreate):
         try:
-            await self._user_repo.add_user(user)
+
+            hashed_password = Hasher.get_password_hash(user.hashed_password)
+
+            new_user = UserCreate(username=user.username, email=user.email, hashed_password=hashed_password)
+            await self._user_repo.add_user(new_user)
 
             return UserCreateResponse(
                 username=user.username,
@@ -40,6 +45,13 @@ class UserService:
 
         if not user.is_active:
             raise HTTPException(status_code=404, detail=f"Пользователь user_id: {user_id} деактивирован/удален")
+
+        return UserResponse.model_validate(user)
+
+    async def get_user_by_email(self, email: str) -> UserResponse:
+        user = await self._user_repo.get_user_by_email(email)
+        if user is None:
+            raise HTTPException(status_code=404, detail=f"Пользователь с email: {email} не найден")
 
         return UserResponse.model_validate(user)
 
