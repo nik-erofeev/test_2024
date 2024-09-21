@@ -4,9 +4,10 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.models.user import UserCreate, UserCreateResponse, UserDelResponse, UserResponse
+from app.models.user import UserCreate, UserCreateResponse, UserDelResponse, UserResponse, UserResponseAll, UserUpdate
+from app.orm_models import User
 from app.repositories.user_repository import UserRepo
-from app.utils.auth import Hasher
+from app.utils.hasher import Hasher
 
 
 logger = logging.getLogger(__name__)
@@ -38,22 +39,29 @@ class UserService:
             logger.exception(f"Database error occurred while adding product, {e}")
             raise HTTPException(status_code=500, detail="Database error occurred")
 
-    async def get_user_by_id(self, user_id: UUID) -> UserResponse:
-        user = await self._user_repo.get_user_by_id(user_id)
+    async def get_user_by_id(self, user_uuid: UUID) -> UserResponse:
+        user = await self._user_repo.get_user_by_uuid(user_uuid)
         if user is None:
-            raise HTTPException(status_code=404, detail=f"Пользователь user_id: {user_id} не найден")
+            raise HTTPException(status_code=404, detail=f"Пользователь user_id: {user_uuid} не найден")
 
         if not user.is_active:
-            raise HTTPException(status_code=404, detail=f"Пользователь user_id: {user_id} деактивирован/удален")
+            raise HTTPException(status_code=404, detail=f"Пользователь user_id: {user_uuid} деактивирован/удален")
 
         return UserResponse.model_validate(user)
 
-    async def get_user_by_email(self, email: str) -> UserResponse:
+    async def get_user_by_email(self, email: str) -> UserResponseAll:
         user = await self._user_repo.get_user_by_email(email)
         if user is None:
             raise HTTPException(status_code=404, detail=f"Пользователь с email: {email} не найден")
 
-        return UserResponse.model_validate(user)
+        return UserResponseAll.model_validate(user)
+
+    async def get_user_by_username(self, username: str) -> UserResponseAll:
+        user = await self._user_repo.get_user_by_username(username)
+        if user is None:
+            raise HTTPException(status_code=404, detail=f"Пользователь с username: {username} не найден")
+
+        return UserResponseAll.model_validate(user)
 
     async def delete_user_by_id(self, user_id: UUID) -> UserDelResponse:
         try:
@@ -62,3 +70,21 @@ class UserService:
         except SQLAlchemyError as e:
             logger.exception("Database error occurred while updating product")
             raise e
+
+    async def update_user_by_uuid(self, user_uuid: UUID, user_update: UserUpdate) -> UserResponse:
+        user: User = await self._user_repo.get_user_by_uuid(user_uuid)
+        if user is None:
+            raise HTTPException(status_code=404, detail=f"Пользователь с id: {user_uuid} не найден")
+
+        if not user.is_active:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Пользователь с id: {user_uuid} удален и не может быть обновлен",
+            )
+
+        try:
+            updated_user = await self._user_repo.update_user(user_uuid, user_update)
+            return UserResponse.model_validate(updated_user)
+        except ValueError as e:
+            logger.warning(f"User update failed: {e}")
+            raise HTTPException(status_code=400, detail=str(e))

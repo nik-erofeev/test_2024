@@ -3,7 +3,7 @@ from punq import Container, Scope
 from app.repositories.product_repository import ProductRepo
 from app.repositories.task_repository import TaskRepo
 from app.repositories.user_repository import UserRepo
-from app.routers.login_handler import AuthRouter
+from app.routers.login_router import AuthRouter
 from app.routers.product_router import ProductRouter
 from app.routers.task_router import TaskRouter
 from app.routers.user_router import UserRouter

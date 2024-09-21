@@ -3,13 +3,14 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import jwt, JWTError
+from jose import jwt
 from pydantic import BaseModel
 
-from app.models.user import UserResponse
+from app.models.user import UserResponse, UserResponseAll
 from app.services.user_service import UserService
 from app.settings import APP_CONFIG
-from app.utils.auth import Hasher
+from app.utils.auth import get_current_user_from_token
+from app.utils.hasher import Hasher
 
 
 logger = logging.getLogger(__name__)
@@ -42,10 +43,8 @@ class AuthRouter:
         @router.post("/token", response_model=Token)
         async def login_for_access_token(
             form_data: OAuth2PasswordRequestForm = Depends(),
-            # form_data: LoginForm = Depends()
         ):
-            # user = await self.authenticate_user(form_data.email, form_data.password)
-            user = await self.authenticate_user(form_data.username, form_data.password)  # todo: username=email!
+            user = await self.authenticate_user(form_data.username, form_data.password)
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -53,36 +52,21 @@ class AuthRouter:
                 )
             access_token_expires = timedelta(minutes=APP_CONFIG.access_token_expire_minutes)
             access_token = self.create_access_token(
-                data={"sub": user.email, "other_custom_data": [1, 2, 3, 4], "cas_id": str(user.id)},
+                data={"sub": user.email, "cas_id": str(user.id)},
                 expires_delta=access_token_expires,
             )
             return {"access_token": access_token, "token_type": "bearer"}
 
-        @router.get("/get_token")
-        async def sample_endpoint_under_jwt(
-            current_user: UserResponse = Depends(self.get_current_user_from_token),
+        @router.get("/get_token", response_model=UserResponse)
+        async def get_current_user(
+            current_user: UserResponseAll = Depends(self._get_current_user),
         ):
-            return {"Success": True, "current_user": current_user}
+            return current_user
 
-    async def get_current_user_from_token(self, token: str = Depends(oauth2_scheme)) -> UserResponse:
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-        )
-        try:
-            payload = jwt.decode(token, APP_CONFIG.secret_key, algorithms=[APP_CONFIG.algorithm])
-            email: str = payload.get("sub")
-            if email is None:
-                raise credentials_exception
-        except JWTError:
-            raise credentials_exception
+    async def _get_current_user(self, token: str = Depends(oauth2_scheme)) -> UserResponseAll:
+        return await get_current_user_from_token(token, self._user_service)
 
-        user = await self._user_service.get_user_by_email(email)
-        if user is None:
-            raise credentials_exception
-        return user
-
-    async def authenticate_user(self, email: str, password: str) -> UserResponse | None:
+    async def authenticate_user(self, email: str, password: str) -> UserResponseAll | None:
         user = await self._user_service.get_user_by_email(email)
         if user is None or not Hasher.verify_password(password, user.hashed_password):
             return None
