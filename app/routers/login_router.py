@@ -50,6 +50,7 @@ class AuthRouter:
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Incorrect username or password",
                 )
+
             access_token_expires = timedelta(minutes=APP_CONFIG.access_token_expire_minutes)
             access_token = self.create_access_token(
                 data={"sub": user.email, "cas_id": str(user.id)},
@@ -70,6 +71,12 @@ class AuthRouter:
         user = await self._user_service.get_user_by_email(email)
         if user is None or not Hasher.verify_password(password, user.hashed_password):
             return None
+
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Ваш аккаунт деактивирован/удален",
+            )
         return user
 
     @staticmethod
