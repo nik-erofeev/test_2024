@@ -4,9 +4,9 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.models.user import UserCreate, UserCreateResponse, UserDelResponse, UserResponse
+from app.models.user import UserCreate, UserCreateResponse, UserDelResponse, UserResponse, UserResponseAll
 from app.repositories.user_repository import UserRepo
-from app.utils.auth import Hasher
+from app.utils.hasher import Hasher
 
 
 logger = logging.getLogger(__name__)
@@ -48,12 +48,12 @@ class UserService:
 
         return UserResponse.model_validate(user)
 
-    async def get_user_by_email(self, email: str) -> UserResponse:
+    async def get_user_by_email(self, email: str) -> UserResponseAll:
         user = await self._user_repo.get_user_by_email(email)
         if user is None:
             raise HTTPException(status_code=404, detail=f"Пользователь с email: {email} не найден")
 
-        return UserResponse.model_validate(user)
+        return UserResponseAll.model_validate(user)
 
     async def delete_user_by_id(self, user_id: UUID) -> UserDelResponse:
         try:

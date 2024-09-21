@@ -19,7 +19,7 @@ class UserCreateResponse(UserBase):
         from_attributes = True
 
 
-class UserResponse(UserBase):
+class UserResponseAll(UserBase):
     is_active: bool
     id: UUID
     hashed_password: str
@@ -31,6 +31,14 @@ class UserResponse(UserBase):
 class UserDelResponse(BaseModel):
     id: UUID
     message: str
+
+    class Config:
+        from_attributes = True
+
+
+class UserResponse(UserBase):
+    is_active: bool
+    id: UUID
 
     class Config:
         from_attributes = True

@@ -3,14 +3,14 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import jwt, JWTError
+from jose import jwt
 from pydantic import BaseModel
 
-from app.models.user import UserResponse
-from app.services.RENAME_ import get_current_user_from_token
+from app.models.user import UserResponse, UserResponseAll
 from app.services.user_service import UserService
 from app.settings import APP_CONFIG
-from app.utils.auth import Hasher
+from app.utils.auth import get_current_user_from_token
+from app.utils.hasher import Hasher
 
 
 logger = logging.getLogger(__name__)
@@ -59,14 +59,14 @@ class AuthRouter:
 
         @router.get("/get_token", response_model=UserResponse)
         async def get_current_user(
-            current_user: UserResponse = Depends(self._get_current_user),
+            current_user: UserResponseAll = Depends(self._get_current_user),
         ):
             return current_user
 
-    async def _get_current_user(self, token: str = Depends(oauth2_scheme)) -> UserResponse:
+    async def _get_current_user(self, token: str = Depends(oauth2_scheme)) -> UserResponseAll:
         return await get_current_user_from_token(token, self._user_service)
 
-    async def authenticate_user(self, email: str, password: str) -> UserResponse | None:
+    async def authenticate_user(self, email: str, password: str) -> UserResponseAll | None:
         user = await self._user_service.get_user_by_email(email)
         if user is None or not Hasher.verify_password(password, user.hashed_password):
             return None
