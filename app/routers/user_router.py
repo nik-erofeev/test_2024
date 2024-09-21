@@ -75,10 +75,9 @@ class UserRouter:
             status_code=201,
         )
         async def delete_user(
-            user_id: UUID,
             current_user: UserResponseAll = Depends(self._get_current_user),
         ):
-            return await self._user_service.delete_user_by_id(user_id)
+            return await self._user_service.delete_user_by_id(current_user.id)
 
         @router.patch(
             '/',
