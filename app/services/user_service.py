@@ -7,14 +7,16 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.models.user import UserCreate, UserCreateResponse, UserDelResponse, UserResponse, UserResponseAll, UserUpdate
 from app.orm_models import User
 from app.repositories.user_repository import UserRepo
+from app.settings import configure_logging
 from app.utils.hasher import Hasher
 
 
 logger = logging.getLogger(__name__)
+configure_logging(level=logging.INFO)
 
 
 class UserService:
-    def __init__(self, user_repo: UserRepo) -> UserCreateResponse:
+    def __init__(self, user_repo: UserRepo) -> None:
         self._user_repo = user_repo
 
     async def create_user(self, user: UserCreate):
@@ -72,7 +74,7 @@ class UserService:
             raise e
 
     async def update_user_by_uuid(self, user_uuid: UUID, user_update: UserUpdate) -> UserResponse:
-        user: User = await self._user_repo.get_user_by_uuid(user_uuid)
+        user: User | None = await self._user_repo.get_user_by_uuid(user_uuid)
         if user is None:
             raise HTTPException(status_code=404, detail=f"Пользователь с id: {user_uuid} не найден")
 

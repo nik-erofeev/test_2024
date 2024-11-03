@@ -7,10 +7,12 @@ from fastapi.responses import ORJSONResponse
 from app.models.user import UserCreate, UserCreateResponse, UserDelResponse, UserResponse, UserResponseAll, UserUpdate
 from app.routers.login_router import oauth2_scheme
 from app.services.user_service import UserService
+from app.settings import configure_logging
 from app.utils.auth import get_current_user_from_token
 
 
 logger = logging.getLogger(__name__)
+configure_logging(level=logging.INFO)
 
 
 class UserRouter:
@@ -31,6 +33,7 @@ class UserRouter:
             status_code=status.HTTP_201_CREATED,
         )
         async def create_new_user(user: UserCreate):
+            logger.info(f"Creating new {user=}")
             return await self._user_service.create_user(user)
 
         @router.get(
